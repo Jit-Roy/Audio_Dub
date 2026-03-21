@@ -10,8 +10,6 @@ Thumbs.db
 # Large/generated assets
 pretrained_models/
 separated_audio/
-music/
-vocal/
 
 # Logs and checkpoints
 *.log
