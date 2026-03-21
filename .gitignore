@@ -1,0 +1,24 @@
+venv/
+__pycache__/
+*.pyc
+
+# OS/editor
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Large/generated assets
+pretrained_models/
+separated_audio/
+music/
+vocal/
+
+# Logs and checkpoints
+*.log
+*.ckpt
+*.pt
+*.pth
+
+# Secrets
+.env
+*.env
