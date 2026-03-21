@@ -1,0 +1,117 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+model_name = "Qwen/Qwen3-0.6B"
+
+# Load tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype="auto",
+    device_map="auto",
+)
+
+def translate_fragment(text_fragment: str, target_language: str = "Chinese") -> str:
+    """Translate an incomplete sentence fragment without completing missing context."""
+
+    style_rules = (
+        f"Translate to {target_language}. "
+        "Input may be an incomplete sentence fragment. "
+        "STRICT RULES:\n"
+        "- Do NOT complete the sentence\n"
+        "- Do NOT add new words not present in source\n"
+        "- Keep translation as short as possible\n"
+        "- Prefer natural spoken Chinese (for subtitles)\n"
+        "- Avoid overly formal words\n"
+        "- Preserve fragment structure exactly\n"
+        "- Match ending punctuation exactly (ellipsis, comma, dash, etc.)\n"
+        "- Output ONLY translation"
+    )
+
+    messages = [
+        {"role": "system", "content": style_rules},
+        {"role": "user", "content": text_fragment},
+    ]
+
+    text = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
+
+    inputs = tokenizer([text], return_tensors="pt").to(model.device)
+
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=64,
+        do_sample=False,
+        repetition_penalty=1.1,
+        eos_token_id=tokenizer.eos_token_id,
+    )
+
+    generated_ids = outputs[0][len(inputs.input_ids[0]):]
+    translation = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+
+    # --- Post-processing for punctuation consistency ---
+    src = text_fragment.strip()
+
+    def clean_end(text):
+        return text.rstrip("。,.!！?;；:")
+
+    if src.endswith("..."):
+        if not (translation.endswith("...") or translation.endswith("……")):
+            translation = clean_end(translation) + "……"
+
+    elif src.endswith(","):
+        if not translation.endswith(("，", ",")):
+            translation = clean_end(translation) + "，"
+
+    elif src.endswith(":"):
+        if not translation.endswith(("：", ":")):
+            translation = clean_end(translation) + "："
+
+    elif src.endswith("-"):
+        if not translation.endswith(("-", "—")):
+            translation = clean_end(translation) + "—"
+
+    return translation
+
+
+# -----------------------------
+# 🧪 TEST CASES
+# -----------------------------
+
+test_fragments = [
+    # Your original ones
+    "You've said in your research that...",
+    "If we look at the data from last quarter,",
+    "The main reason this failed was",
+
+    # 🔥 Edge cases
+    "What we discovered next was...",
+    "This raises an important question:",
+    "And then suddenly-",
+    "The results clearly indicate that",
+    "In contrast to previous studies,",
+    "One possible explanation could be...",
+    "If we consider the implications,",
+    "This might suggest that",
+    "From a theoretical perspective,",
+    "The data doesn't support the claim that...",
+    
+    # 🧠 More natural speech fragments
+    "So what you're basically saying is...",
+    "But the problem here is",
+    "And that's where things get interesting...",
+    "If you think about it,",
+    "The real issue isn't that",
+]
+
+target_language = "Chinese"
+
+for i, frag in enumerate(test_fragments, 1):
+    result = translate_fragment(frag, target_language)
+    print(f"{i}. Source: {frag}")
+    print(f"   {target_language}: {result}")
+    print()
