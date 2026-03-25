@@ -5,14 +5,18 @@ model_name = "Qwen/Qwen3-0.6B"
 
 # Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
+_device = "cuda" if torch.cuda.is_available() else "cpu"
+_dtype = torch.float16 if _device.startswith("cuda") else torch.float32
+
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    torch_dtype="auto",
-    device_map="auto",
+    torch_dtype=_dtype,
+    device_map=_device,
 )
 
 def translate_fragment(text_fragment: str, target_language: str = "Chinese") -> str:
     """Translate an incomplete sentence fragment without completing missing context."""
+    print(f"[LLM] Translating fragment ({len(text_fragment)} chars) -> {target_language}")
 
     style_rules = (
         f"Translate to {target_language}. "
@@ -52,6 +56,7 @@ def translate_fragment(text_fragment: str, target_language: str = "Chinese") -> 
 
     generated_ids = outputs[0][len(inputs.input_ids[0]):]
     translation = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+    print(f"[LLM] Done ({len(translation)} chars)")
 
     # --- Post-processing for punctuation consistency ---
     src = text_fragment.strip()

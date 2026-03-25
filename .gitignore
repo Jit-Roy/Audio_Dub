@@ -20,3 +20,9 @@ separated_audio/
 # Secrets
 .env
 *.env
+# Temporary directories
+temp/
+cache/
+*.wav
+*.mp3
+*.json
