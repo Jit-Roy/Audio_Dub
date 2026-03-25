@@ -75,6 +75,9 @@ def separate_speakers(
     print(f"✓ Model loaded: {model}")
 
     mixwav, sr = sf.read(audio_file)
+    if mixwav.ndim > 1:
+        mixwav = mixwav.mean(axis=1)  # Convert stereo to mono
+
     print(f"✓ Audio loaded: {audio_file} (sr={sr})")
 
     duration_sec = len(mixwav) / sr
