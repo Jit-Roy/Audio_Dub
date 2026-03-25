@@ -159,6 +159,7 @@ def time_stretch_to_duration(audio: np.ndarray, sr: int, target_duration: float)
         rate = current_duration / target_duration
         if rate <= 0:
             return audio
+        # librosa.effects.time_stretch uses a phase vocoder to stretch time while keeping the pitch identical
         return librosa.effects.time_stretch(audio, rate=rate)
 
 
