@@ -18,4 +18,4 @@ torchvision==0.20.1+cu124
 pytorch-lightning==2.6.1
 torchmetrics>=0.11.4
 transformers==4.57.3
-wget==3.2transformers<=4.48.3
+wget==3.2

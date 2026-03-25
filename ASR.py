@@ -155,14 +155,14 @@ def load_whisper(model_id: str, device: str):
         try:
             processor = AutoProcessor.from_pretrained(model_id, local_files_only=True)
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
-                model_id, dtype=dtype, low_cpu_mem_usage=True, local_files_only=True,
+                model_id, dtype=dtype, low_cpu_mem_usage=True, local_files_only=True, use_safetensors=True
             ).to(device).eval()
             print("Using cached Whisper files.")
         except Exception:
             print(f"Downloading {model_id} from Hugging Face...")
             processor = AutoProcessor.from_pretrained(model_id)
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
-                model_id, dtype=dtype, low_cpu_mem_usage=True,
+                model_id, dtype=dtype, low_cpu_mem_usage=True, use_safetensors=True
             ).to(device).eval()
 
         lang_to_id = getattr(model.generation_config, "lang_to_id", None)
