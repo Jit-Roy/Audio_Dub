@@ -71,7 +71,7 @@ def translate_fragment(
 
     outputs = model.generate(
         **inputs,
-        max_new_tokens=64,
+        max_new_tokens=32768,
         do_sample=False,
         repetition_penalty=1.1,
         eos_token_id=tokenizer.eos_token_id,
