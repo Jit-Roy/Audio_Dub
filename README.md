@@ -1,4 +1,4 @@
-# Movie Dubbing Pipeline
+# Audio Dubbing Pipeline
 
 An automated audio dubbing pipeline that translates movie audio from English to another language (e.g., Chinese) with natural speech synthesis. The system handles complex multi-speaker scenarios with speech overlap detection and intelligent audio mixing.
 
@@ -7,6 +7,16 @@ An automated audio dubbing pipeline that translates movie audio from English to 
 ## Project Overview
 
 This pipeline takes an input audio file, separates it into speaker tracks, detects overlapping speech, transcribes the content, translates it to a target language, generates dubbed audio using voice cloning, and finally mixes everything back together.
+
+## Sample Audio Comparison
+
+Listen to the raw English input vs the final automated Chinese output:
+
+**Original Audio (English):**
+[Podcast.wav](https://github.com/user-attachments/files/26311435/Podcast.wav)
+
+**Dubbed Output (Chinese):**
+[Podcast_Chinese_Dubbed.wav](https://github.com/user-attachments/files/26311791/Podcast_Chinese_Dubbed.wav)
 
 ## Pipeline Architecture
 
@@ -63,12 +73,19 @@ Transcribes audio content with precise timing information for each segment.
 ### Step 7: Translation
 Translates transcribed English text to target language (Chinese) with duration-aware constraints.
 
-**Model Used**: Qwen3-0.6B (Qwen LLM)
-- Lightweight 600M parameter language model
-- Takes duration guidance into account
-- Generates character counts matching expected TTS timing
-- Token limit: 32,768 (full model capacity)
-- Targets approximately 5 characters per second for natural speech pacing
+**Models Available**: 
+1. **Qwen3-0.6B** (Default local LLM)
+   - Lightweight 600M parameter language model
+   - Takes duration guidance into account
+   - Generates character counts matching expected TTS timing
+   - Token limit: 32,768 (full model capacity)
+   - Targets approximately 5 characters per second for natural speech pacing
+   - <span style="color:red">**Warning:** I have personally tested that the smaller Qwen 0.6B model hallucinates sometimes (especially on ultra-short audio segments). It's better to use higher size models for stable production translations.</span>
+
+2. **Gemma-3-27b-it** (via Google GenAI API)
+   - Cloud-based 27B parameter model for highly accurate translations
+   - Eliminates translation hallucinations on ultra-short audio segments
+   - Requires `--llm-provider gemma` and your `--genai-key` passed as arguments
 
 ### Step 8: Text-to-Speech (TTS) and Audio Mixing
 Generates dubbed audio in target language with voice cloning, performs time-stretching for timing alignment, and mixes all tracks together.
@@ -110,14 +127,21 @@ Generates dubbed audio in target language with voice cloning, performs time-stre
 
 1. Clone the repository
 2. Install dependencies: `pip install -r requirements.txt`
+   > <span style="color:red">**Note:** Sometimes running `pip install -r requirements.txt` may give a setup tools dependency error. In that case, manually install the libraries via `pip install <library>` in the exact order they are listed in the `requirements.txt` file.</span>
 3. Set up .env file with HF token: `hf_token=your_token_here`
 
 ## Usage
 
 Basic usage:
 
-```
-python main.py --input-audio <path_to_audio> --target-language Chinese --hf-token <your_hf_token>
+```bash
+python main.py \
+    --input-audio "podcast.wav" \
+    --target-language "Chinese" \
+    --llm-provider "gemma" \
+    --genai-key "your_genai_key" \
+    --hf-token "your_hf_token" \
+    --temp-dir "temp"
 ```
 
 Or store the token in `.env` file and run:
