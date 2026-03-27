@@ -21,10 +21,10 @@ def time_stretch_audio(audio: np.ndarray, sr: int, target_duration: float) -> np
             return adjust_audio_duration(audio.astype(np.float32), sr, target_duration)
         except Exception as e:
             print(f"      [ERROR] Audio adjustment failed: {e}")
-            return audio
+            raise e
     else:
-        print(f"      [WARN] Skipping extreme time-stretch to {target_duration:.2f}s (rate: {rate:.2f}x bounds exceeded)")
-        return audio
+        # Instead of failing silently or bleeding, raise an error to trigger an LLM rewrite
+        raise ValueError(f"Time stretch bounds exceeded! Audio is {original_duration:.2f}s, target is {target_duration:.2f}s (rate {rate:.2f}x).")
 
 def overlay_audio(base: np.ndarray, overlay: np.ndarray, start_sample: int) -> np.ndarray:
     """Safely overlay generated audio onto a base track at a specific sample index."""

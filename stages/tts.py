@@ -5,6 +5,7 @@ from core.config import config
 from core.cache import CacheManager
 from modules.Qwen3tts import load_tts_model, generate_voice_clone
 from modules.Reference_Extraction import get_tts_reference
+from modules.Qwen3llm import translate_fragment
 from utils.helper import load_mono, save_wav
 from utils.audio_ops import time_stretch_audio, overlay_audio, resample_audio, mix_audio_tracks
 
@@ -64,44 +65,65 @@ class TTSAndMixStage(PipelineStage):
                         continue
                         
                     print(f"    [TTS] Generating segment {seg.index} ({seg.start:.2f}-{seg.end:.2f}s)")
-                    tts_start = time.time()
                     
-                    try:
-                        # 1. Generate Voice Clone
-                        wavs, tts_sr = generate_voice_clone(
-                            text=seg.translated_text,
-                            language=config.target_language,
-                            ref_audio=session.reference_audio_path,
-                            ref_text=session.reference_text,
-                            model=tts_model,
-                        )
-                        if not wavs:
-                            continue
+                    max_retries = 3
+                    tts_success = False
+                    last_error = None
+                    
+                    for attempt in range(max_retries):
+                        tts_start = time.time()
+                        try:
+                            # 1. Generate Voice Clone
+                            wavs, tts_sr = generate_voice_clone(
+                                text=seg.translated_text,
+                                language=config.target_language,
+                                ref_audio=session.reference_audio_path,
+                                ref_text=session.reference_text,
+                                model=tts_model,
+                            )
+                            if not wavs:
+                                raise ValueError("Empty wavs list returned from TTS generator.")
+                                
+                            tts_audio = wavs[0]
+                            if isinstance(tts_audio, np.ndarray) and tts_audio.ndim > 1:
+                                tts_audio = tts_audio.mean(axis=1)
+
+                            print(f"      [TTS] Generation time: {time.time() - tts_start:.2f}s")
+
+                            # 2. Resample
+                            tts_audio = resample_audio(tts_audio, tts_sr, config.default_sr)
                             
-                        tts_audio = wavs[0]
-                        if isinstance(tts_audio, np.ndarray) and tts_audio.ndim > 1:
-                            tts_audio = tts_audio.mean(axis=1)
+                            # 3. Time Stretch (raises ValueError if bounds exceeded)
+                            tts_audio = time_stretch_audio(tts_audio, config.default_sr, seg.duration)
 
-                        print(f"      [TTS] Generation time: {time.time() - tts_start:.2f}s")
+                            # 4. Overlay onto track
+                            start_sample = int(seg.start * config.default_sr)
+                            dubbed_audio = overlay_audio(dubbed_audio, tts_audio, start_sample)
+                            
+                            # Cache the individual stretched segment
+                            segment_cache_path.parent.mkdir(parents=True, exist_ok=True)
+                            save_wav(segment_cache_path, tts_audio, config.default_sr)
 
-                        # 2. Resample
-                        tts_audio = resample_audio(tts_audio, tts_sr, config.default_sr)
-                        
-                        # 3. Time Stretch
-                        tts_audio = time_stretch_audio(tts_audio, config.default_sr, seg.duration)
+                            tts_success = True
+                            break  # Exit retry loop on success
 
-                        # 4. Overlay onto track
-                        start_sample = int(seg.start * config.default_sr)
-                        dubbed_audio = overlay_audio(dubbed_audio, tts_audio, start_sample)
-                        
-                        # Cache the individual stretched segment
-                        segment_cache_path.parent.mkdir(parents=True, exist_ok=True)
-                        save_wav(segment_cache_path, tts_audio, config.default_sr)
-
-                    except Exception as e:
-                        print(f"    [Error] TTS failed for segment {seg.index}: {e}")
-                        seg.failed = True
-                        seg.error_message = str(e)
+                        except Exception as e:
+                            last_error = e
+                            print(f"    [Error] Attempt {attempt+1}/{max_retries} failed for segment {seg.index}: {e}")
+                            if attempt < max_retries - 1:
+                                print(f"    [LLM Fallback] Generating a new translation to fit {seg.duration:.2f}s window...")
+                                try:
+                                    seg.translated_text = translate_fragment(
+                                        text_fragment=seg.text, 
+                                        target_language=config.target_language, 
+                                        target_duration=seg.duration, 
+                                        target_chars=seg.target_chars
+                                    )
+                                except Exception as llm_e:
+                                    print(f"      [LLM Fallback Error]: {llm_e}")
+                                    
+                    if not tts_success:
+                        raise RuntimeError(f"Segment {seg.index} could not be successfully generated after {max_retries} attempts. Final error: {last_error}")
                 
                 # Assume if >90% succeeded, saving partial mix is worth it for cache
                 save_wav(tts_cache_path, dubbed_audio, config.default_sr)
