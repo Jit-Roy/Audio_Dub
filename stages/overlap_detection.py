@@ -19,8 +19,8 @@ class OverlapDetectionStage(PipelineStage):
                 "Set hf_token in .env or pass it via config."
             )
             
-        cache = CacheManager(config.cache_dir, context.input_file)
-        overlaps_cache_key = "overlaps.json"
+        cache = CacheManager(config.temp_dir, context.input_file)
+        overlaps_cache_key = "02_overlap_detection/overlaps.json"
         
         if cache.exists(overlaps_cache_key):
             print(f"  Using cached overlaps.")

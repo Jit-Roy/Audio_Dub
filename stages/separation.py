@@ -17,9 +17,9 @@ class SeparationStage(PipelineStage):
         if not context.vocal_path or not context.vocal_path.exists():
             raise RuntimeError("Vocal path missing from context.")
             
-        cache = CacheManager(config.cache_dir, context.input_file)
-        separation_done_key = "separation_done.json"
-        separation_dir = config.temp_dir / "separation"
+        cache = CacheManager(config.temp_dir, context.input_file)
+        separation_done_key = "04_separation/separation_done.json"
+        separation_dir = config.dir_separation
         
         if cache.exists(separation_done_key):
             print("  Using cached separation outputs...")

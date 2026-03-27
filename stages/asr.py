@@ -13,10 +13,10 @@ class ASRStage(PipelineStage):
         if not context.speaker_sessions:
             raise RuntimeError("No speaker sessions found. Run DiarizationStage first.")
             
-        cache = CacheManager(config.cache_dir, context.input_file)
+        cache = CacheManager(config.temp_dir, context.input_file)
         
         for session in context.speaker_sessions:
-            asr_cache_key = f"asr_{session.name}.json"
+            asr_cache_key = f"06_asr/asr_{session.name}.json"
             
             if cache.exists(asr_cache_key):
                 print(f"  ASR -> {session.name} (cached)")

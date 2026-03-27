@@ -15,7 +15,7 @@ class TTSAndMixStage(PipelineStage):
         
     def execute(self, context: PipelineContext) -> None:
         tts_model = load_tts_model()
-        cache = CacheManager(config.cache_dir, context.input_file)
+        cache = CacheManager(config.temp_dir, context.input_file)
         
         dubbed_tracks = []
         
@@ -23,11 +23,11 @@ class TTSAndMixStage(PipelineStage):
             if not session.segments:
                 continue
                 
-            tts_cache_key = f"tts_{session.name}.wav"
+            tts_cache_key = f"08_tts/tts_{session.name}.wav"
             tts_cache_path = cache.get_path(tts_cache_key)
             
             # Fetch Reference Audio
-            ref_cache_key = f"ref_audio/{session.name}_ref_7s.wav"
+            ref_cache_key = f"08_tts/ref_audio/{session.name}_ref_7s.wav"
             ref_audio_path = cache.get_path(ref_cache_key)
             ref_audio_path.parent.mkdir(parents=True, exist_ok=True)
             
@@ -55,7 +55,7 @@ class TTSAndMixStage(PipelineStage):
                     if not seg.translated_text or seg.failed:
                         continue
                         
-                    segment_cache_key = f"tts_segments/{session.name}/segment_{seg.index:04d}_stretched.wav"
+                    segment_cache_key = f"08_tts/tts_segments/{session.name}/segment_{seg.index:04d}_stretched.wav"
                     segment_cache_path = cache.get_path(segment_cache_key)
                     
                     if segment_cache_path.exists():

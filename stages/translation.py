@@ -9,13 +9,13 @@ class TranslationStage(PipelineStage):
         return "Translation"
         
     def execute(self, context: PipelineContext) -> None:
-        cache = CacheManager(config.cache_dir, context.input_file)
+        cache = CacheManager(config.temp_dir, context.input_file)
         
         for session in context.speaker_sessions:
             if not session.segments:
                 continue
                 
-            translation_cache_key = f"translations/translated_{session.name}.json"
+            trans_cache_key = f"07_translation/translated_{session.name}.json"
             
             if cache.exists(translation_cache_key):
                 print(f"  LLM translation -> {session.name} (cached)")

@@ -32,15 +32,15 @@ class IdentificationStage(PipelineStage):
         return len(context.overlaps) > 0
         
     def execute(self, context: PipelineContext) -> None:
-        cache = CacheManager(config.cache_dir, context.input_file)
-        match_done_key = "match_done.json"
+        cache = CacheManager(config.temp_dir, context.input_file)
+        match_done_key = "05_identification/match_done.json"
         
         if cache.exists(match_done_key):
             print("  Using cached speaker matches...")
         else:
             print("  Matching separated voices to diarization speakers...")
-            separation_dir = config.temp_dir / "separation"
-            diarization_dir = config.temp_dir / "diarization"
+            separation_dir = config.dir_separation
+            diarization_dir = config.dir_diarization_base
             
             separation_mapping = collect_separation_outputs(separation_dir)
             for seg_idx, voices in separation_mapping.items():

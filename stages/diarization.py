@@ -27,7 +27,7 @@ class DiarizationStage(PipelineStage):
         if not context.vocal_path or not context.vocal_path.exists():
             raise RuntimeError("Vocal path missing from context.")
             
-        diarization_dir = config.temp_dir / "diarization"
+        diarization_dir = config.dir_diarization_base
         speaker_files = find_speaker_audio(diarization_dir)
         
         if speaker_files:
