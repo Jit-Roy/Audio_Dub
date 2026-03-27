@@ -14,10 +14,12 @@ This pipeline takes an input audio file, separates it into speaker tracks, detec
 Listen to the raw English input vs the final automated Chinese output:
 
 **Original Audio (English):**
-<audio controls src="Audio_Samples/Podcast.wav"></audio>
+<audio controls src="https://raw.githubusercontent.com/Jit-Roy/Movie_Dub/main/Audio_Samples/Podcast.mp3"></audio>
+<br/>*[Click here to listen if player doesn't load](https://github.com/Jit-Roy/Movie_Dub/blob/main/Audio_Samples/Podcast.mp3)*
 
 **Dubbed Output (Chinese):**
-<audio controls src="Audio_Samples/Podcast_Chinese_Dubbed.wav"></audio>
+<audio controls src="https://raw.githubusercontent.com/Jit-Roy/Movie_Dub/main/Audio_Samples/Podcast_Chinese_Dubbed.mp3"></audio>
+<br/>*[Click here to listen if player doesn't load](https://github.com/Jit-Roy/Movie_Dub/blob/main/Audio_Samples/Podcast_Chinese_Dubbed.mp3)*
 
 ## Pipeline Architecture
 
