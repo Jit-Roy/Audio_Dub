@@ -17,9 +17,9 @@ class TranslationStage(PipelineStage):
                 
             trans_cache_key = f"07_translation/translated_{session.name}.json"
             
-            if cache.exists(translation_cache_key):
+            if cache.exists(trans_cache_key):
                 print(f"  LLM translation -> {session.name} (cached)")
-                cached_data = cache.load_json(translation_cache_key, [])
+                cached_data = cache.load_json(trans_cache_key, [])
                 
                 # Create a quick dict to map cached indices to translations
                 cached_map = {item.get("index"): item.get("translated_text", "") for item in cached_data}
@@ -47,6 +47,6 @@ class TranslationStage(PipelineStage):
                         
                 # Cache the hydrated segments (only successful ones)
                 cache.save_json(
-                    translation_cache_key, 
+                    trans_cache_key, 
                     [{"index": s.index, "translated_text": s.translated_text} for s in session.segments if not s.failed]
                 )
