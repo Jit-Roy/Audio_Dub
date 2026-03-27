@@ -1,7 +1,7 @@
 from core.pipeline import PipelineStage, PipelineContext
 from core.config import config
 from core.cache import CacheManager
-from modules.Qwen3llm import translate_fragment
+from modules.translator import translate_fragment
 
 class TranslationStage(PipelineStage):
     @property

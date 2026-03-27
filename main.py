@@ -18,18 +18,22 @@ def main() -> None:
     parser.add_argument("--hf-token", default="", help="Hugging Face token for overlap detection")
     parser.add_argument("--temp-dir", default=str(config.temp_dir), help="Temporary directory for outputs")
     parser.add_argument("--start-from", default=None, help="Stage to resume from (e.g. 'ASR')")
+    parser.add_argument("--llm-provider", default="qwen", choices=["qwen", "gemma"], help="Which LLM to use for translation")
+    parser.add_argument("--genai-key", default="", help="Google API key for Gemma-3 via genai")
+    
     args = parser.parse_args()
 
     input_path = Path(args.input_audio).resolve()
-    
+
     # 1. Hydrate the global config object from CLI args
     if args.hf_token:
         config.hf_token = args.hf_token
     if args.target_language:
         config.target_language = args.target_language
-    
-    config.temp_dir = Path(args.temp_dir).resolve()
-    # Re-trigger __post_init__ logic manually since temp_dir changed
+    if args.llm_provider:
+        config.llm_provider = args.llm_provider
+    if args.genai_key:
+        config.genai_key = args.genai_key
     config.__post_init__()
 
     # 2. Construct the logical pipeline

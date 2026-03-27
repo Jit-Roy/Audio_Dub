@@ -36,6 +36,10 @@ class AppConfig:
     
     # Secrets
     hf_token: str = field(default_factory=lambda: os.getenv("hf_token", ""))
+    
+    # LLM Settings
+    llm_provider: str = "qwen"
+    genai_key: str = field(default_factory=lambda: os.getenv("GENAI_API_KEY", ""))
 
     def __post_init__(self):
         # Initialize paths

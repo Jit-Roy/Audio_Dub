@@ -5,7 +5,7 @@ from core.config import config
 from core.cache import CacheManager
 from modules.Qwen3tts import load_tts_model, generate_voice_clone
 from modules.Reference_Extraction import get_tts_reference
-from modules.Qwen3llm import translate_fragment
+from modules.translator import translate_fragment
 from utils.helper import load_mono, save_wav
 from utils.audio_ops import time_stretch_audio, overlay_audio, resample_audio, mix_audio_tracks
 
