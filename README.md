@@ -1,6 +1,19 @@
-<h1 align="center">
-  <img src="docs/Icon.png" alt="Audio Dubbing Pipeline" width="150" align="center" /> Audio Dubbing Pipeline
-</h1>
+<div align="center">
+  <img src="docs/Icon.png" alt="Audio Dubbing Logo" width="130" />
+</div>
+
+<h1 align="center">Audio Dubbing Pipeline</h1>
+
+<p align="center">
+  <a href="https://github.com/Jit-Roy">
+    <img src="https://img.shields.io/badge/Made%20by-Jit_Roy-orange?style=for-the-badge&logo=github&logoColor=white" alt="Made by Jit Roy">
+  </a>
+  <a href="https://github.com/Jit-Roy/Audio_Dub/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License: MIT">
+  </a>
+  <img src="https://img.shields.io/badge/Python-3.11%2B-brightgreen?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=for-the-badge" alt="Platform">
+</p>
 
 An automated audio dubbing pipeline that translates movie audio from English to another language (e.g., Chinese) with natural speech synthesis. The system handles complex multi-speaker scenarios with speech overlap detection and intelligent audio mixing.
 
