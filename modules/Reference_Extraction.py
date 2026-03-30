@@ -32,7 +32,11 @@ def get_tts_reference(
     best_audio_clips = []
     accumulated_duration = 0.0
     
-    # Strategy 1: Find a single segment that is perfectly sized (3s to max_duration)
+    # Strategy 1: Find the best continuous segment that is perfectly sized (3s to max_duration)
+    # based on speech density to ensure high-quality reference audio
+    best_segment = None
+    best_score = -1.0
+    
     for seg in segments:
         start = float(seg["start"])
         end = float(seg["end"])
@@ -40,13 +44,26 @@ def get_tts_reference(
         text = seg.get("source_text", seg.get("text", "")).strip()
         
         if text and (3.0 <= dur <= max_duration) and len(text) < 300:
-            start_idx = int(start * sr)
-            end_idx = int(end * sr)
-            clip = audio_data[start_idx:end_idx]
+            # Evaluate quality based on speech density (characters per second)
+            cps = len(text) / dur
+            # Target an average speaking rate (e.g. ~15 cps for English)
+            cps_penalty = abs(cps - 15.0)
+            # Score favors longer segments with natural speaking rates
+            score = dur * (1.0 / (cps_penalty + 1.0))
             
-            output_ref_path.parent.mkdir(parents=True, exist_ok=True)
-            sf.write(str(output_ref_path), clip, sr)
-            return str(output_ref_path), text
+            if score > best_score:
+                best_score = score
+                best_segment = seg
+                
+    if best_segment:
+        start_idx = int(float(best_segment["start"]) * sr)
+        end_idx = int(float(best_segment["end"]) * sr)
+        clip = audio_data[start_idx:end_idx]
+        text = best_segment.get("source_text", best_segment.get("text", "")).strip()
+        
+        output_ref_path.parent.mkdir(parents=True, exist_ok=True)
+        sf.write(str(output_ref_path), clip, sr)
+        return str(output_ref_path), text
 
     # Strategy 2: Accumulate smaller segments until we hit a decent length
     for seg in segments:
