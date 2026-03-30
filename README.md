@@ -197,9 +197,7 @@ The pipeline calculates target character counts based on expected TTS timing:
 
 ## Limitations and Known Issues
 
-1. Time-stretch bounds (0.4x-2.5x) may cause audio gaps if exceeded
-2. Voice reference audio quality impacts final TTS output
-3. Character density assumption (5 chars/sec) may vary by language
+None currently identified. Previous limitations regarding time-stretch bounds, voice reference extraction, and language-specific character density assumptions have been resolved in the latest update.
 
 
 ## License

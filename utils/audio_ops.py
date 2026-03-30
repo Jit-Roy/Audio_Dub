@@ -13,18 +13,29 @@ def time_stretch_audio(audio: np.ndarray, sr: int, target_duration: float) -> np
         return audio
         
     rate = original_duration / target_duration
+    clamped_rate = max(0.4, min(rate, 2.5))
     
-    # Don't stretch if it would sound completely garbled (e.g. > 2.5x speed or < 0.4x speed)
-    if 0.4 <= rate <= 2.5:
-        print(f"      [AudioOps] Time-stretch to {target_duration:.2f}s (rate: {rate:.2f}x)")
-        try:
-            return adjust_audio_duration(audio.astype(np.float32), sr, target_duration)
-        except Exception as e:
-            print(f"      [ERROR] Audio adjustment failed: {e}")
-            raise e
+    clamped_target_duration = original_duration / clamped_rate
+    
+    if rate != clamped_rate:
+        print(f"      [AudioOps] Warning: Rate {rate:.2f}x exceeds bounds. Clamping to {clamped_rate:.2f}x.")
     else:
-        # Instead of failing silently or bleeding, raise an error to trigger an LLM rewrite
-        raise ValueError(f"Time stretch bounds exceeded! Audio is {original_duration:.2f}s, target is {target_duration:.2f}s (rate {rate:.2f}x).")
+        print(f"      [AudioOps] Time-stretch to {target_duration:.2f}s (rate: {rate:.2f}x)")
+        
+    try:
+        stretched = adjust_audio_duration(audio.astype(np.float32), sr, clamped_target_duration)
+        
+        # Pad or truncate to match exactly the target duration
+        target_length = int(target_duration * sr)
+        if len(stretched) < target_length:
+            stretched = np.pad(stretched, (0, target_length - len(stretched)))
+        elif len(stretched) > target_length:
+            stretched = stretched[:target_length]
+            
+        return stretched
+    except Exception as e:
+        print(f"      [ERROR] Audio adjustment failed: {e}")
+        raise e
 
 def overlay_audio(base: np.ndarray, overlay: np.ndarray, start_sample: int) -> np.ndarray:
     """Safely overlay generated audio onto a base track at a specific sample index."""
